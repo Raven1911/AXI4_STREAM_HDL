@@ -77,8 +77,6 @@ module axi4_stream#(
                 .DATA_WIDTH_BYTE(DATA_WIDTH_BYTE)
             )coordinator_master_uut(
                 //port generate
-                .aclk_i(aclk_i),
-                .aresetn_i(aresetn_i),
                 .m_tvalid_o(m_tvalid_o),
                 .m_tready_i(m_tready_i),
                 .user_m_busy_o(user_m_busy_o),
@@ -94,7 +92,7 @@ module axi4_stream#(
 
             register_DFF #(
                 .SIZE_BITS(1 + DATA_WIDTH_BYTE + DATA_WIDTH_BYTE + (DATA_WIDTH_BYTE*8))
-            ) register_DFF_R_1 (
+            ) stage_delay_data (
                 .clk_i(aclk_i),
                 .resetn_i(aresetn_i),
                 .D_i({user_m_tlast_i, user_m_tkeep_i, user_m_tstrb_i, user_m_data_i}),
@@ -125,8 +123,6 @@ module axi4_stream#(
                 .DATA_WIDTH_BYTE(DATA_WIDTH_BYTE)
             )coordinator_slave_uut(
                 //port generate
-                .aclk_i(aclk_i),
-                .aresetn_i(aresetn_i),
                 .s_tvalid_i(s_tvalid_i),
                 .s_tready_o(s_tready_o),
                 .user_s_ready_o(user_s_ready_o),
@@ -161,10 +157,6 @@ endmodule
 module coordinator_master#(
     parameter DATA_WIDTH_BYTE = 2
 )(
-    //port generate
-    input                           aclk_i,
-    input                           aresetn_i,
-
     /////////////////////////////////////////////////
     //port master interface
     /////////////////////////////////////////////////
@@ -187,10 +179,6 @@ endmodule
 module coordinator_slave#(
     parameter DATA_WIDTH_BYTE = 2
 )(
-    //port generate
-    input                           aclk_i,
-    input                           aresetn_i,
-
     /////////////////////////////////////////////////
     //port slave interface
     /////////////////////////////////////////////////
