@@ -1,4 +1,4 @@
 # AXI4_STREAM_HDL
 
 
-![alt text](Arc.jpg)
+![alt text](doc/AXI4-Stream.drawio.png)
