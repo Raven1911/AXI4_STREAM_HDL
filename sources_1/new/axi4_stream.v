@@ -87,16 +87,28 @@ module axi4_stream#(
                 .rd_fifo_o(rd_fifo_o)
             );
 
-            
+            wire  [DATA_WIDTH_BYTE*8-1:0] wire_tdata;
+            wire  [DATA_WIDTH_BYTE-1:0]   wire_tstrb;
+            wire  [DATA_WIDTH_BYTE-1:0]   wire_tkeep;
+            wire                          wire_tlast;
+
+            register_DFF #(
+                .SIZE_BITS(1 + DATA_WIDTH_BYTE + DATA_WIDTH_BYTE + (DATA_WIDTH_BYTE*8))
+            ) register_DFF_R_1 (
+                .clk_i(aclk_i),
+                .resetn_i(aresetn_i),
+                .D_i({user_m_tlast_i, user_m_tkeep_i, user_m_tstrb_i, user_m_data_i}),
+                .Q_o({wire_tlast, wire_tkeep, wire_tstrb, wire_tdata})
+            );
 
             fifo_unit #(.ADDR_WIDTH(SIZE_FIFO), .DATA_WIDTH(1 + DATA_WIDTH_BYTE + DATA_WIDTH_BYTE + (DATA_WIDTH_BYTE*8))) buffer_uut(
                 .clk(aclk_i), 
                 .reset_n(aresetn_i),
-                .wr(user_m_wr_data_i), 
+                .wr(user_m_wr_data_i && !user_m_busy_o), 
                 .rd(rd_fifo_o),
                 .wr_ptr(),
                 .rd_ptr(),
-                .w_data({user_m_tlast_i, user_m_tkeep_i, user_m_tstrb_i, user_m_data_i}), //writing data
+                .w_data({wire_tlast, wire_tkeep, wire_tstrb, wire_tdata}),                //writing data
                 .r_data({m_tlast_o, m_tkeep_o, m_tstrb_o, m_tdata_o}),                    //reading data
                 .full(full_i),
                 .empty(empty_i)
@@ -123,11 +135,13 @@ module axi4_stream#(
                 .wr_fifo_o(wr_fifo_o)
             );
 
+            
+
             fifo_unit #(.ADDR_WIDTH(SIZE_FIFO), .DATA_WIDTH(1 + DATA_WIDTH_BYTE + DATA_WIDTH_BYTE + (DATA_WIDTH_BYTE*8))) buffer_uut(
                 .clk(aclk_i), 
                 .reset_n(aresetn_i),
                 .wr(wr_fifo_o), 
-                .rd(user_s_rd_data_i),
+                .rd(user_s_rd_data_i && user_s_ready_o),
                 .wr_ptr(),
                 .rd_ptr(),
                 .w_data({s_tlast_i, s_tkeep_i, s_tstrb_i, s_tdata_i}),                                       //writing data
@@ -249,7 +263,25 @@ endmodule
 
 
 
+module register_DFF#(
+    SIZE_BITS = 32
+)(  
+    input                           clk_i,
+    input                           resetn_i,
+    input       [SIZE_BITS-1:0]    D_i,
 
+    output  reg [SIZE_BITS-1:0]    Q_o
+);
+    always @(posedge clk_i, negedge resetn_i) begin
+        if (~resetn_i) begin
+            Q_o <= 0;
+        end
+        else begin
+            Q_o <= D_i;
+        end
+    end
+
+endmodule
 
 
 
